@@ -5,21 +5,20 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public Image p1h1, p1h2, p1h3, p2h1, p2h2, p2h3; //Hearts
-    public Text p1Score, p2Score;
+    public Image p1h1, p1h2, p1h3; //Hearts
+    public Text p1Score;
     public Sprite fullHeart;
     public Sprite emptyHeart;
-    public FloorManager p1FloorManager, p2FloorManager;
+    public FloorManager p1FloorManager;
 
-    public GameObject momo1, momo2, p1Spikes, p2Spikes; 
+    public GameObject momo1, p1Spikes; 
     public GameObject gameOverScreen; 
-    public Text time, winner; 
+    public Text time; 
 
     private float previousTime = 0;
     private int player1Lives; 
-    private int player2Lives; 
 
-    private bool p1Touching, p2Touching;
+    private bool p1Touching;
 
     private SoundManager soundManager;
     private float gameStart = 0;
@@ -30,10 +29,8 @@ public class GameManager : MonoBehaviour
     {
         //Set initial player lives 
         player1Lives = 3;
-        player2Lives = 3; 
 
         p1Touching = false;
-        p2Touching = false;
         
         soundManager = FindObjectOfType<SoundManager>();
         gameStart = Time.time;
@@ -46,18 +43,12 @@ public class GameManager : MonoBehaviour
         if (Time.timeSinceLevelLoad - previousTime > 5) {
             previousTime = Time.time;
         }
-        if (player1Lives == 0 || player2Lives == 0) {
+        if (player1Lives == 0) {
             if(gameEnd == 0) {
                 gameEnd = Time.time;
             }
             gameOverScreen.SetActive(true);
             Time.timeScale = 0;
-            if(player1Lives > player2Lives) {
-                winner.text = "Player 1 wins!";
-            } else {
-                winner.text = "Player 2 wins!";
-            }
-            time.text = "Time: " + (gameEnd - gameStart);
         } else {
             CheckForPowerUpCollision();
             CheckForSpikeTouch();
@@ -66,20 +57,13 @@ public class GameManager : MonoBehaviour
                 soundManager.PlayLoseLifeSound();
                 player1Lives--;
             }
-            if(p2FloorManager.CheckSwordTouch()) {
-                p2FloorManager.Reset();
-                soundManager.PlayLoseLifeSound();
-                player2Lives--;
-            }
         } 
         UpdateLives();
     }
 
     public void PlayAgain() {
         p1FloorManager.Reset();
-        p2FloorManager.Reset();
         player1Lives = 3;
-        player2Lives = 3;
         Time.timeScale = 1;
         gameOverScreen.SetActive(false);
         gameEnd = 0;
@@ -96,14 +80,6 @@ public class GameManager : MonoBehaviour
         } else if(!p1Spikes.GetComponent<BoxCollider2D>().IsTouching(momo1.GetComponent<BoxCollider2D>())) {
             p1Touching = false;
         }
-        if (p2Spikes.GetComponent<BoxCollider2D>().IsTouching(momo2.GetComponent<BoxCollider2D>()) && !p2Touching) {
-            p2Touching = true;
-            p2FloorManager.Reset();
-            soundManager.PlayLoseLifeSound();
-            player2Lives--;
-        } else if(!p2Spikes.GetComponent<BoxCollider2D>().IsTouching(momo2.GetComponent<BoxCollider2D>())) {
-            p2Touching = false;
-        }
     }
 
     void CheckForPowerUpCollision() 
@@ -115,19 +91,11 @@ public class GameManager : MonoBehaviour
                 p1FloorManager.AcquiredPowerup(i);
             }
         }
-        //Player 2:
-        for(int i=0; i<p2FloorManager.powerups.Count; i++) {
-            if(momo2.GetComponent<BoxCollider2D>().bounds.Contains(p2FloorManager.powerups[i].transform.position)) {
-                soundManager.PlayCoinCollectedSound();
-                p2FloorManager.AcquiredPowerup(i);
-            }
-        }
     }
 
     void UpdateLives() 
     {
         UpdateplayerLives(player1Lives, p1h1, p1h2, p1h3);
-        UpdateplayerLives(player2Lives, p2h1, p2h2, p2h3);
     }
 
     void UpdateplayerLives(int numLives, Image heart1, Image heart2, Image heart3) {
