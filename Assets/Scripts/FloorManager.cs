@@ -7,7 +7,6 @@ public class FloorManager : MonoBehaviour
     // Public Variables
     public GameObject momo; 
     public FloorManager otherFloorManager;
-    public bool leftSide; 
     
     public Sprite normalGround;
     public Sprite obstacle;
@@ -124,11 +123,11 @@ public class FloorManager : MonoBehaviour
         if (obj.name == "RemoveFloor") {
             FloorRemovalCoinAchieved();
         } else if (obj.name == "IncreaseSpeed") {
-            otherFloorManager.IncreaseSpeed();
+            IncreaseSpeed();
         } else if (obj.name == "SlowSpeed") {
             floorSpeed = floorSpeed * 0.75f;
         } else { //Sword walls
-            otherFloorManager.SwordWalls();
+            SwordWalls();
         }
     }
 
@@ -238,22 +237,18 @@ public class FloorManager : MonoBehaviour
         float spriteWidth = normalGround.texture.width / normalGround.pixelsPerUnit;
         float spriteHeight = normalGround.texture.height / normalGround.pixelsPerUnit;
 
-        float hole = Random.Range(0.1f, 0.4f);
+        float hole = Random.Range(0.1f, 0.9f);
         
         float widthScale = width/(spriteWidth);
         float heightScale = height/(18*spriteHeight);
 
         float leftSideWidth = widthScale * hole - 0.15f;
-        float rightSideWidth = widthScale * (0.5f - hole) - 0.15f;
+        float rightSideWidth = widthScale * (1f - hole) - 0.15f;
         
         // Create left floor
         GameObject floorLeft = new GameObject("LeftFloor");
         floorLeft.transform.localScale = new Vector3(leftSideWidth, heightScale);
-        if (leftSide) {
-            floorLeft.transform.position = new Vector3((-width/2) + spriteWidth*leftSideWidth/2,(-height/2) + spriteHeight*heightScale/2,0);
-        } else {
-            floorLeft.transform.position = new Vector3(0 + spriteWidth*leftSideWidth/2,(-height/2) + spriteHeight*heightScale/2,0);
-        }
+        floorLeft.transform.position = new Vector3((-width/2) + spriteWidth*leftSideWidth/2,(-height/2) + spriteHeight*heightScale/2,0);
         SpriteRenderer renderer = floorLeft.AddComponent<SpriteRenderer>();
         renderer.sprite = normalGround;
         floorLeft.AddComponent<BoxCollider2D>();
@@ -261,11 +256,7 @@ public class FloorManager : MonoBehaviour
         // Create right floor
         GameObject floorRight = new GameObject("RightFloor");
         floorRight.transform.localScale = new Vector3(rightSideWidth, heightScale);
-        if (leftSide) {
-            floorRight.transform.position = new Vector3(0 - spriteWidth*rightSideWidth/2,(-height/2) + spriteHeight*heightScale/2,0);
-        } else {
-            floorRight.transform.position = new Vector3((width/2) - spriteWidth*rightSideWidth/2,(-height/2) + spriteHeight*heightScale/2,0);
-        }
+        floorRight.transform.position = new Vector3((width/2) - spriteWidth*rightSideWidth/2,(-height/2) + spriteHeight*heightScale/2,0);
         SpriteRenderer rendererRight = floorRight.AddComponent<SpriteRenderer>();
         rendererRight.sprite = normalGround;
         floorRight.AddComponent<BoxCollider2D>();
@@ -290,19 +281,12 @@ public class FloorManager : MonoBehaviour
         BoxCollider2D leftCollider = leftFloor.GetComponent<BoxCollider2D>();
         BoxCollider2D rightCollider = rightFloor.GetComponent<BoxCollider2D>();
 
-        if(leftSide) {
-            //Checks for overlap 
-            while (!leftCollider.bounds.Contains(new Vector3(-location, leftCollider.bounds.center.y, 0)) && !rightCollider.bounds.Contains(new Vector3(-location, rightCollider.bounds.center.y, 0))) {
-                location = Random.Range(0.5f,width/2-0.5f);
-            }
-            obs.transform.position = new Vector3(-location,-height/2 + spriteHeight*2/2 + floorHeight);
-        } else {
-            //Checks for overlap 
-            while (!leftCollider.bounds.Contains(new Vector3(location, leftCollider.bounds.center.y, 0)) && !rightCollider.bounds.Contains(new Vector3(location, rightCollider.bounds.center.y, 0))) {
-                location = Random.Range(0.5f,width/2-0.5f);
-            }
-            obs.transform.position = new Vector3(location,-height/2 + spriteHeight*2/2 + floorHeight);
+        //Checks for overlap 
+        while (!leftCollider.bounds.Contains(new Vector3(-location, leftCollider.bounds.center.y, 0)) && !rightCollider.bounds.Contains(new Vector3(-location, rightCollider.bounds.center.y, 0))) {
+            location = Random.Range(0.5f,width/2-0.5f);
         }
+        obs.transform.position = new Vector3(-location,-height/2 + spriteHeight*2/2 + floorHeight);
+  
         SpriteRenderer renderer = obs.AddComponent<SpriteRenderer>();
         renderer.sprite = obstacle;
         obs.AddComponent<BoxCollider2D>();
@@ -329,17 +313,11 @@ public class FloorManager : MonoBehaviour
         powerObj.transform.localScale = new Vector3(1f, 1f);
 
         float location = Random.Range(0.5f,width/2-0.5f);
-        if(leftSide) {  
-            while(obs.GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight))) {
-                location = Random.Range(0.5f,width/2-0.5f);
-            }
-            powerObj.transform.position = new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight);
-        } else {
-            while(obs.GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(location,-height/2 + spriteHeight/2 + floorHeight))) {
-                location = Random.Range(0.5f,width/2-0.5f);
-            }
-            powerObj.transform.position = new Vector3(location,-height/2 + spriteHeight/2 + floorHeight);
+        while(obs.GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight))) {
+            location = Random.Range(0.5f,width/2-0.5f);
         }
+        powerObj.transform.position = new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight);
+  
         SpriteRenderer renderer = powerObj.AddComponent<SpriteRenderer>();
         renderer.sprite = powerupSprites[pIndex];
         powerups.Add(powerObj);

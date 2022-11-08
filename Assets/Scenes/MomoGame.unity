@@ -854,7 +854,7 @@ Transform:
   m_GameObject: {fileID: 698971092}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.66, y: 3.22, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_Children: []
   m_Father: {fileID: 1557102232}
   m_RootOrder: 1
@@ -904,7 +904,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   momo: {fileID: 698971092}
   otherFloorManager: {fileID: 0}
-  leftSide: 1
   normalGround: {fileID: 21300000, guid: 1256cf9f4e60d894496bef4be4b06ddc, type: 3}
   obstacle: {fileID: 21300000, guid: 9f8e7873ebd59dd46afae05c83405e9b, type: 3}
   floorRemover: {fileID: 21300000, guid: 98051c2026929a04aa792b7182b0ea70, type: 3}
