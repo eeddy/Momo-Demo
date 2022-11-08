@@ -10,3 +10,4 @@ Logs/
 UserSettings/
 .vs/*
 .vsconfig
+Python/data/*

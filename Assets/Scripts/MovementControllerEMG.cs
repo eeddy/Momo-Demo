@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class MovementControllerEMG : MonoBehaviour
 {
-    public float speed;
-    public float upwardsForce;
+    private float speed = 5;
+    private float upwardsForce = 2;
     public Rigidbody2D rb;
     private Vector2 velocity;
     private MyoEMGRawReader emgReader;
@@ -22,22 +22,23 @@ public class MovementControllerEMG : MonoBehaviour
     void Update()
     {
         string control = emgReader.ReadControlFromArmband();
-        if (control == "Wrist_Flexion") {
+        if (control == "3") {
             alreadyJumped = false;
             rb.velocity = Vector3.zero;
             velocity = new Vector2(-speed, 0);
             rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
-        } else if (control == "Wrist_Extension") {
+        } else if (control == "2") {
             alreadyJumped = false;
             rb.velocity = Vector3.zero;
             velocity = new Vector2(speed, 0);
             rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
-        } else if (control == "Hand_Closed") {
-            if(!alreadyJumped) {
-                rb.AddForce(new Vector2(0,1) * upwardsForce);
-                soundManager.PlayJumpSound();
-                alreadyJumped = true;
-            }
+        } else if (control == "0") {
+            rb.velocity = Vector3.zero;
+            velocity = new Vector2(0, upwardsForce);
+            rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+            // rb.AddForce(new Vector2(0,1) * upwardsForce);
+            // soundManager.PlayJumpSound();
+            // alreadyJumped = true;
         } else {
             alreadyJumped = false;
         }

@@ -13,7 +13,7 @@ using System.Text;
 public class MyoEMGRawReader : MonoBehaviour
 {
     public string IP = "127.0.0.1";
-    public int port = 12345;
+    public int port = 12346;
 
     // read Thread
     Thread readThread;
@@ -24,7 +24,7 @@ public class MyoEMGRawReader : MonoBehaviour
 
     public void StartReadingData()
     {
-        // create thread for reading UDP messages
+        // create thread for reading messages
         readThread = new Thread(new ThreadStart(ReceiveData));
         readThread.IsBackground = true;
         readThread.Start();
@@ -36,7 +36,7 @@ public class MyoEMGRawReader : MonoBehaviour
         stopThread();
     }
 
-    // Stop reading UDP messages
+    // Stop reading messages
     public void stopThread()
     {
         if (readThread.IsAlive)
@@ -52,21 +52,14 @@ public class MyoEMGRawReader : MonoBehaviour
         client = new UdpClient(port);
         while (true)
         {
-            try
-            {
-                // receive bytes
-                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
-                byte[] buff = client.Receive(ref anyIP);
+            // receive bytes
+            IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+            byte[] buff = client.Receive(ref anyIP);
 
-                // encode UTF8-coded bytes to text format
-                string text = Encoding.UTF8.GetString(buff);
-                string[] parts = text.Split(' ');
-                control = parts[0];
-            }
-            catch (Exception err)
-            {
-                // print(err.ToString());
-            }
+            // encode UTF8-coded bytes to text format
+            string text = Encoding.UTF8.GetString(buff);
+            string[] parts = text.Split(' ');
+            control = parts[0];
         }
     }
 
