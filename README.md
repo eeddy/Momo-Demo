@@ -1,6 +1,8 @@
 # Unity Demo
 In [Example 1](https://github.com/eeddy/PyGaMEDemo/blob/main/README.md), we showed how to leverage the [UNB_EMG_Toolbox](https://eeddy.github.io/unb_emg_toolbox/) to interface with a simple pygame. Often, however, it may be desirable to use a different game engine or tech stack. For example, Unity is a common game development environment that enables high-quality games and VR/AR development. As such, developers may want to use it for their EMG-related applications. The good news is that these tools can still leverage the toolkit very easily! This example shows how to leverage the toolkit using a simple Unity game. It is important to note that although this is a simple game, the concept is applicable to any application regardless of its complexity.
 
+![momo](Docs/Momo_Myo.gif)
+
 ## **The Fall of Momo** 
 The Fall of Momo is a simple platformer game that was designed for myoeletric training purposes <sup>[1,2]</sup>. The goal of the game is to control the character "Momo" down the screen and avoid the spikes. Originally, this game was built in processing and the original version can be found [here](https://github.com/hcilab/Momo). We have recreated a simplified version in Unity for this demo. In this version, the 3 inputs and their respective controls are:
 
@@ -29,8 +31,8 @@ using UnityEngine;
 
 public class MovementController : MonoBehaviour
 {
-    public float speed;
-    public float upwardsForce;
+    private float speed = 5;
+    private float upwardsForce = 300;
     public Rigidbody2D rb;
     private Vector2 velocity;
 
@@ -42,21 +44,16 @@ public class MovementController : MonoBehaviour
 
     void Update()
     {
+        Vector3 pos = rb.transform.position;
         if (Input.GetKey(KeyCode.LeftArrow)) {
-            // Move Left
-            rb.velocity = Vector3.zero;
-            velocity = new Vector2(-speed, 0);
-            rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+            pos.x -= speed * Time.deltaTime;
         } else if (Input.GetKey(KeyCode.RightArrow)) {
-            // Move Right
-            rb.velocity = Vector3.zero;
-            velocity = new Vector2(speed, 0);
-            rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+            pos.x += speed * Time.deltaTime;
         } else if (Input.GetKeyDown(KeyCode.Space)) {
-            // Jump
             rb.AddForce(new Vector2(0,1) * upwardsForce);
             soundManager.PlayJumpSound();
         }
+        rb.transform.position = pos;
     }
 }
 ```
@@ -73,7 +70,7 @@ from unb_emg_toolbox.emg_classifier import OnlineEMGClassifier
 ```
 
 <div>
-    <img src="Docs/menu.png" width="31%" float="left"/>
+    <img src="Docs/menu.PNG" width="31%" float="left"/>
     <img src="https://github.com/eeddy/PyGaMEDemo/blob/main/docs/training_screen1.PNG?raw=True" width="31%" float="left"/>
     <img src="https://github.com/eeddy/PyGaMEDemo/blob/main/docs/training_screen2.PNG?raw=True" width="31%" float="left"/>
 </div>
@@ -118,21 +115,105 @@ feature_list = fe.get_feature_groups()['LS9']
 training_features = fe.extract_features(feature_list, train_windows)
 ```
 
-After extracting the features from the training data, we have to create a dataset dictionary to pass to the online classifier.
+After extracting the features from the training data, we have to create a dataset dictionary to pass to the online classifier. Note that we have also included the training_windows. This is done so that we can leverage velocity based control. 
 ```Python
 data_set = {}
 data_set['training_features'] = training_features
 data_set['training_labels'] = train_metadata['classes']
+data_set['training_windows'] = train_windows
 ```
 
-Finally, lets create the `OnlineEMGClassifier` and begin streaming predictions. Note that we set block to false so that we don't block the UI thread. Additionally, we have opted to use SVM since it is a relatively robust classifier. 
+Finally, lets create the `OnlineEMGClassifier` and begin streaming predictions. Note that we set block to false so that we don't block the UI thread. 
 
 ```Python
  # Step 4: Create online EMG classifier and start classifying.
 self.classifier = OnlineEMGClassifier(model="SVM", data_set=data_set, num_channels=8, window_size=WINDOW_SIZE, window_increment=WINDOW_INCREMENT, 
-        online_data_handler=self.odh, features=feature_list, std_out=True)
+                online_data_handler=self.odh, features=feature_list, rejection_type="CONFIDENCE", rejection_threshold=0.75, majority_vote=10, velocity=True, std_out=True)
 self.classifier.run(block=False) # block set to false so it will run in a seperate process.
 ```
+
+There is a lot to unpack in this online classifier, so let's go through it:
+- **model="SVM":** In this example, we are using a Support Vector Machine for classification. 
+- **rejection_type:** Since rejection is known to improve usability, we have decided to include it. 
+- **rejection_threshold:** Since SVM is known to have a greater range of probability outputs (compared to LDA, for example), we have a much lower rejection threshold. If we set this too high, the majority of decisions will inevitably be rejected.
+- **majority_vote:** To reduce spurious false activations (especially of the hand-closed class), we have decided to introduce a majority vote.
+- **velocity:** Finally, we decided to leverage velocity-based control to augment the experience. This means that when users contract harder, their character will move faster. 
+
+Now that we have the Python side set up, we had to create a way to listen for these TCP events in C#. To do this, we created `MyoEMGRawReader.cs`. It spins up a thread to continuously listen on a specific port (in this case 12346). Note that the IP and port are the default values that the OnlineEMGClassifier streams over. Every time it receives a value, it updates a global control and speed variable that can be used by the `MovementControllerEMG`.
+
+```C#
+String control = "";
+float speed = 0.0f;
+
+public string IP = "127.0.0.1";
+public int port = 12346;
+
+// receive thread function
+private void ReceiveData()
+{
+    client = new UdpClient(port);
+    while (true)
+    {
+        // receive bytes
+        IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+        byte[] buff = client.Receive(ref anyIP);
+
+        // encode UTF8-coded bytes to text format
+        string text = Encoding.UTF8.GetString(buff);
+        string[] parts = text.Split(' ');
+        control = parts[0];
+        speed = float.Parse(parts[1]);
+    }
+}
+```
+
+```C#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class MovementControllerEMG : MonoBehaviour
+{
+    private float upwardsForce = 300;
+    public Rigidbody2D rb;
+    private Vector2 velocity;
+    private MyoEMGRawReader emgReader;
+    private float jumpTime;
+
+    private SoundManager soundManager;
+
+    void Start() {
+        soundManager = FindObjectOfType<SoundManager>();
+        emgReader = new MyoEMGRawReader();
+        emgReader.StartReadingData();
+    }
+
+    void Update()
+    {
+        string control = emgReader.ReadControlFromArmband();
+        float movSpeed = emgReader.ReadSpeedFromArmband();
+        if(movSpeed > 5) {
+            movSpeed = 5;
+        }
+        Vector3 pos = rb.transform.position;
+        if (control == "0") {
+            if (Time.time - jumpTime > 1.0f) {
+                rb.AddForce(new Vector2(0,1) * 300);
+                soundManager.PlayJumpSound();
+                jumpTime = Time.time;
+            }
+        } else if (control == "2") {
+            //Extension:
+            pos.x += (movSpeed) * Time.deltaTime;
+        } else if (control == "3") {
+            //Flexion:
+            pos.x -= (movSpeed) * Time.deltaTime;
+        }
+        rb.transform.position = pos;
+    }
+}
+```
+
 
 
 ## References

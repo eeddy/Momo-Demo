@@ -59,10 +59,6 @@ class Menu:
     def start_classifying(self):
         self.window.destroy()
         self.start_classifying()
-        # # Its important to stop the classifier after the game has ended
-        # # Otherwise it will continuously run in a seperate process
-        # self.classifier.stop_running()
-        # self.initialize_ui()
 
     def launch_training(self):
         self.window.destroy()
@@ -71,8 +67,8 @@ class Menu:
         self.initialize_ui()
 
     def start_classifying(self):
-        WINDOW_SIZE = 100 
-        WINDOW_INCREMENT = 25
+        WINDOW_SIZE = 50 
+        WINDOW_INCREMENT = 10
 
         # Step 1: Parse offline training data
         dataset_folder = 'data/'
@@ -93,7 +89,7 @@ class Menu:
 
         # Step 2: Extract features from offline data
         fe = FeatureExtractor(num_channels=8)
-        feature_list = fe.get_feature_groups()['LS4']
+        feature_list = fe.get_feature_groups()['LS9']
         training_features = fe.extract_features(feature_list, train_windows)
 
         # Step 3: Dataset creation
@@ -104,7 +100,7 @@ class Menu:
 
         # Step 4: Create online EMG classifier and start classifying.
         self.classifier = OnlineEMGClassifier(model="SVM", data_set=data_set, num_channels=8, window_size=WINDOW_SIZE, window_increment=WINDOW_INCREMENT, 
-                online_data_handler=self.odh, features=feature_list, rejection_type="CONFIDENCE", rejection_threshold=0.85, velocity=True, std_out=True)
+                online_data_handler=self.odh, features=feature_list, rejection_type="CONFIDENCE", rejection_threshold=0.75, majority_vote=10, velocity=True, std_out=True)
         self.classifier.run(block=False) # block set to false so it will run in a seperate process.
 
     def on_closing(self):

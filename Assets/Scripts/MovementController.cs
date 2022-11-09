@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class MovementController : MonoBehaviour
 {
-    public float speed;
-    public float upwardsForce;
+    private float speed = 5;
+    private float upwardsForce = 300;
     public Rigidbody2D rb;
     private Vector2 velocity;
 
@@ -17,17 +17,15 @@ public class MovementController : MonoBehaviour
 
     void Update()
     {
+        Vector3 pos = rb.transform.position;
         if (Input.GetKey(KeyCode.LeftArrow)) {
-            rb.velocity = Vector3.zero;
-            velocity = new Vector2(-speed, 0);
-            rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+            pos.x -= speed * Time.deltaTime;
         } else if (Input.GetKey(KeyCode.RightArrow)) {
-            rb.velocity = Vector3.zero;
-            velocity = new Vector2(speed, 0);
-            rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+            pos.x += speed * Time.deltaTime;
         } else if (Input.GetKeyDown(KeyCode.Space)) {
             rb.AddForce(new Vector2(0,1) * upwardsForce);
             soundManager.PlayJumpSound();
         }
+        rb.transform.position = pos;
     }
 }

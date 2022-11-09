@@ -74,7 +74,7 @@ public class FloorManager : MonoBehaviour
     void Update()
     {
         //Spawing floors relative to speed
-        if (Time.timeSinceLevelLoad - previousFloorSpawn > 4.0f/floorSpeed){
+        if (Time.timeSinceLevelLoad - previousFloorSpawn > 3.0f/floorSpeed){
             CreateFloor();
             previousFloorSpawn = Time.time;
         }
