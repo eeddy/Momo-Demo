@@ -20,6 +20,7 @@ public class MyoEMGRawReader : MonoBehaviour
     // udpclient object
     UdpClient client;
     String control = "";
+    float speed = 0.0f;
     
 
     public void StartReadingData()
@@ -60,11 +61,17 @@ public class MyoEMGRawReader : MonoBehaviour
             string text = Encoding.UTF8.GetString(buff);
             string[] parts = text.Split(' ');
             control = parts[0];
+            speed = float.Parse(parts[1]);
         }
     }
 
     public string ReadControlFromArmband() 
     {
         return control;
+    }
+
+    public float ReadSpeedFromArmband() 
+    {
+        return speed;
     }
 }

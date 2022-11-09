@@ -33,7 +33,7 @@ public class FloorManager : MonoBehaviour
 
     private float height, width;
     
-    public float floorSpeed = 0.5f;
+    public float floorSpeed = 1.0f;
     private float floorIncrement = 0.1f;
     private float previousTime = 0f;
     private float previousFloorSpawn = 0f;
@@ -74,7 +74,7 @@ public class FloorManager : MonoBehaviour
     void Update()
     {
         //Spawing floors relative to speed
-        if (Time.timeSinceLevelLoad - previousFloorSpawn > 2.5f/floorSpeed){
+        if (Time.timeSinceLevelLoad - previousFloorSpawn > 4.0f/floorSpeed){
             CreateFloor();
             previousFloorSpawn = Time.time;
         }

@@ -93,22 +93,24 @@ class Menu:
 
         # Step 2: Extract features from offline data
         fe = FeatureExtractor(num_channels=8)
-        feature_list = fe.get_feature_groups()['HTD']
+        feature_list = fe.get_feature_groups()['LS4']
         training_features = fe.extract_features(feature_list, train_windows)
 
         # Step 3: Dataset creation
         data_set = {}
         data_set['training_features'] = training_features
         data_set['training_labels'] = train_metadata['classes']
+        data_set['training_windows'] = train_windows
 
         # Step 4: Create online EMG classifier and start classifying.
-        self.classifier = OnlineEMGClassifier(model="LDA", data_set=data_set, num_channels=8, window_size=WINDOW_SIZE, window_increment=WINDOW_INCREMENT, 
-                online_data_handler=self.odh, features=feature_list, rejection_type='CONFIDENCE', rejection_threshold=0.95, std_out=True)
+        self.classifier = OnlineEMGClassifier(model="SVM", data_set=data_set, num_channels=8, window_size=WINDOW_SIZE, window_increment=WINDOW_INCREMENT, 
+                online_data_handler=self.odh, features=feature_list, rejection_type="CONFIDENCE", rejection_threshold=0.85, velocity=True, std_out=True)
         self.classifier.run(block=False) # block set to false so it will run in a seperate process.
 
     def on_closing(self):
         # Clean up all the processes that have been started
-        self.classifier.stop_running()
+        if not self.classifier is None:
+            self.classifier.stop_running()
         self.myo.terminate()
         self.odh.stop_data()
         self.window.destroy()

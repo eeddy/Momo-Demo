@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,8 +12,8 @@ public class GameManager : MonoBehaviour
     public Sprite emptyHeart;
     public FloorManager p1FloorManager;
 
-    public GameObject momo1, p1Spikes; 
-    public GameObject gameOverScreen; 
+    public GameObject momo1, p1Spikes;
+    public GameObject gameOverScreen, pauseScreen; 
     public Text time; 
 
     private float previousTime = 0;
@@ -27,6 +28,10 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gameOverScreen.SetActive(false);
+        pauseScreen.SetActive(false);
+        Time.timeScale = 1;
+
         //Set initial player lives 
         player1Lives = 3;
 
@@ -34,15 +39,29 @@ public class GameManager : MonoBehaviour
         
         soundManager = FindObjectOfType<SoundManager>();
         gameStart = Time.time;
+
+        //Set control strategy 
+        MovementControllerEMG emgController = momo1.GetComponent<MovementControllerEMG>();
+        MovementController keyboardController = momo1.GetComponent<MovementController>();
+        if (PlayerPrefs.GetInt("control") == 1) {
+            keyboardController.enabled = false;
+            emgController.enabled = true;
+        } else {
+            keyboardController.enabled = true;
+            emgController.enabled = false;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Increase score every 5 seconds
-        if (Time.timeSinceLevelLoad - previousTime > 5) {
-            previousTime = Time.time;
+        // Check for escape pressed 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            pauseScreen.SetActive(true);
+            Time.timeScale = 0;
         }
+
         if (player1Lives == 0) {
             if(gameEnd == 0) {
                 gameEnd = Time.time;
@@ -68,6 +87,15 @@ public class GameManager : MonoBehaviour
         gameOverScreen.SetActive(false);
         gameEnd = 0;
         gameStart = Time.time;
+    }
+    
+    public void Quit() {
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void UnPause() {
+        pauseScreen.SetActive(false);
+        Time.timeScale = 1;
     }
 
     void CheckForSpikeTouch() 

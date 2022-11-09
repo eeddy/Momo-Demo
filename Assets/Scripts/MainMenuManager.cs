@@ -22,15 +22,22 @@ public class MainMenuManager : MonoBehaviour
         instructionPanel.SetActive(false);
     }
 
-    public void StartClicked() {
+    public void KeyboardClicked() {
+        PlayerPrefs.SetInt("control",0);
+        SceneManager.LoadScene("MomoGame");
+    }
+
+    public void EMGControlClicked() {
+        PlayerPrefs.SetInt("control",1);
+        SceneManager.LoadScene("MomoGame");
+    }
+
+    public void PlayClicked() {
         setupPanel.SetActive(true);
     }
 
-    public void CancelClicked() {
-        setupPanel.SetActive(false);
+    public void Quit() {
+        Application.Quit();
     }
 
-    public void ConfirmClicked() {
-        SceneManager.LoadScene("MomoGame");
-    }
 }
