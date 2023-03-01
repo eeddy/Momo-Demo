@@ -11,3 +11,5 @@ UserSettings/
 .vs/*
 .vsconfig
 Python/data/*
+images/
+data/

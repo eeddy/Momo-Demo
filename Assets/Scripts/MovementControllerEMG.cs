@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MovementControllerEMG : MonoBehaviour
 {
-    private float speed = 5;
+    private float speed = 25;
     private float upwardsForce = 300;
     public Rigidbody2D rb;
     private Vector2 velocity;
@@ -19,26 +19,24 @@ public class MovementControllerEMG : MonoBehaviour
         emgReader.StartReadingData();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         string control = emgReader.ReadControlFromArmband();
-        float movSpeed = emgReader.ReadSpeedFromArmband();
-        if(movSpeed > 5) {
-            movSpeed = 5;
-        }
+        float movSpeed = speed * emgReader.ReadSpeedFromArmband();
         Vector3 pos = rb.transform.position;
         if (control == "0") {
-            if (Time.time - jumpTime > 1.0f) {
+            // Debounce the jump
+            if (Time.time - jumpTime > 0.5f) {
                 rb.AddForce(new Vector2(0,1) * 300);
                 soundManager.PlayJumpSound();
                 jumpTime = Time.time;
             }
         } else if (control == "2") {
             //Extension:
-            pos.x += (movSpeed) * Time.deltaTime;
+            rb.AddForce(new Vector2(1,0) * movSpeed);
         } else if (control == "3") {
             //Flexion:
-            pos.x -= (movSpeed) * Time.deltaTime;
+            rb.AddForce(new Vector2(-1,0) * movSpeed);
         }
         rb.transform.position = pos;
     }

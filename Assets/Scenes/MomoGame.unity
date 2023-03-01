@@ -523,7 +523,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 815144330}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: PlayAgain
+        m_MethodName: Quit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -823,8 +823,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cb0b3b269a769848b6189c3f313ab21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
-  upwardsForce: 300
   rb: {fileID: 698971095}
 --- !u!50 &698971095
 Rigidbody2D:
