@@ -1,7 +1,6 @@
 import socket
 import multiprocessing
 from tkinter import *
-from pyomyo import Myo, emg_mode
 from libemg.screen_guided_training import ScreenGuidedTraining
 from libemg.data_handler import OnlineDataHandler, OfflineDataHandler
 from libemg.utils import make_regex
