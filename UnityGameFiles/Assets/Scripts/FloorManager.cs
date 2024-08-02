@@ -6,7 +6,6 @@ public class FloorManager : MonoBehaviour
 {
     // Public Variables
     public GameObject momo; 
-    public FloorManager otherFloorManager;
     
     public Sprite normalGround;
     public Sprite obstacle;
@@ -22,9 +21,6 @@ public class FloorManager : MonoBehaviour
     List<string> powerupNames;
     List<Sprite> powerupSprites;
 
-    private float screenWidth;
-    private float screenHeight;
-
     private List<GameObject> rightFloors; 
     private List<GameObject> leftFloors;
     private List<GameObject> obstacles;
@@ -33,18 +29,17 @@ public class FloorManager : MonoBehaviour
 
     private float height, width;
     
-    public float floorSpeed = 1.0f;
-    private float floorIncrement = 0.1f;
-    private float previousTime = 0f;
+    private float speed = 1.25f;
+    private float generationSpeed = 3f;
     private float previousFloorSpawn = 0f;
+    private float lastHole = 100f;
 
     // Start is called before the first frame update
     void Start()
     {
+        Application.targetFrameRate = -1;
         height = (float)(Camera.main.orthographicSize * 2.0);
         width = (float)(height / Screen.height * Screen.width);
-        screenHeight = Screen.height;
-        screenWidth = Screen.width;
 
         rightFloors = new List<GameObject>();
         leftFloors = new List<GameObject>();
@@ -52,53 +47,44 @@ public class FloorManager : MonoBehaviour
         powerups = new List<GameObject>();
         dangerousObstacles = new List<GameObject>();
         InitializePowerups();
-        CreateFloor();
+        lastHole = CreateFloor();
     }
 
     void InitializePowerups() 
     {
         powerupNames = new List<string>();
         powerupNames.Add("RemoveFloor");
-        powerupNames.Add("IncreaseSpeed");
-        powerupNames.Add("SlowSpeed");
         powerupNames.Add("SwordWalls");
 
         powerupSprites = new List<Sprite>();
         powerupSprites.Add(floorRemover);
-        powerupSprites.Add(speedUp);
-        powerupSprites.Add(speedDown);
         powerupSprites.Add(swordWalls);
     }
 
     // Update is called once per frame
     void Update()
-    {
+    {   
         //Spawing floors relative to speed
-        if (Time.timeSinceLevelLoad - previousFloorSpawn > 3.0f/floorSpeed){
-            CreateFloor();
+        if (Time.time - previousFloorSpawn > generationSpeed && Time.timeSinceLevelLoad > 5){
+            lastHole = CreateFloor();
             previousFloorSpawn = Time.time;
-        }
-        //Increase speed every 10 seconds
-        if (Time.timeSinceLevelLoad - previousTime > 10) {
-            floorSpeed += floorIncrement;
-            previousTime = Time.time;
         }
         //Update floors
         for(int i=0; i<rightFloors.Count; i++) {
-            rightFloors[i].transform.position += new Vector3(0, floorSpeed * Time.deltaTime, 0);
-            leftFloors[i].transform.position += new Vector3(0, floorSpeed * Time.deltaTime, 0);
+            rightFloors[i].transform.position += new Vector3(0, speed * Time.deltaTime, 0); // Takes about 10s to get to top without a speed increase 
+            leftFloors[i].transform.position += new Vector3(0, speed * Time.deltaTime, 0);
         }
         //Update obstacles
         for(int i=0; i<obstacles.Count; i++) {
-            obstacles[i].transform.position += new Vector3(0, floorSpeed * Time.deltaTime, 0);
+            obstacles[i].transform.position += new Vector3(0, speed * Time.deltaTime, 0);
         }
         //Update dangerous obstacles
         for(int i=0; i<dangerousObstacles.Count; i++) {
-            dangerousObstacles[i].transform.position += new Vector3(0, floorSpeed * Time.deltaTime, 0);
+            dangerousObstacles[i].transform.position += new Vector3(0, speed * Time.deltaTime, 0);
         }
         //Update powerups
         for(int i=0; i<powerups.Count; i++) {
-            powerups[i].transform.position += new Vector3(0, floorSpeed * Time.deltaTime, 0);
+            powerups[i].transform.position += new Vector3(0, speed * Time.deltaTime, 0);
         }
         DeleteFloors();
         DeleteObstacles();
@@ -122,10 +108,6 @@ public class FloorManager : MonoBehaviour
         powerups.RemoveAt(idx);
         if (obj.name == "RemoveFloor") {
             FloorRemovalCoinAchieved();
-        } else if (obj.name == "IncreaseSpeed") {
-            IncreaseSpeed();
-        } else if (obj.name == "SlowSpeed") {
-            floorSpeed = floorSpeed * 0.75f;
         } else { //Sword walls
             SwordWalls();
         }
@@ -143,15 +125,9 @@ public class FloorManager : MonoBehaviour
         obstacles = new List<GameObject>();
     }
 
-    public void IncreaseSpeed() 
-    {
-        floorSpeed = floorSpeed * 1.25f;
-    }
-
     //Called when the person dies
     public void Reset() 
     {
-        floorSpeed = 0.5f;
         for(int i=0; i<powerups.Count; i++) {
             Destroy(powerups[i].gameObject);
         }
@@ -233,11 +209,16 @@ public class FloorManager : MonoBehaviour
         }
     }
 
-    public void CreateFloor() {
+    public float CreateFloor() {
         float spriteWidth = normalGround.texture.width / normalGround.pixelsPerUnit;
         float spriteHeight = normalGround.texture.height / normalGround.pixelsPerUnit;
 
-        float hole = Random.Range(0.1f, 0.9f);
+        float randomNum = (float) Random.Range(1, 10);
+        float hole = randomNum / 10.0f;
+        while (Mathf.Abs(lastHole - hole) <= 0.3f) {
+            randomNum = (float) Random.Range(1, 10);
+            hole = randomNum / 10.0f;
+        }
         
         float widthScale = width/(spriteWidth);
         float heightScale = height/(18*spriteHeight);
@@ -263,9 +244,12 @@ public class FloorManager : MonoBehaviour
     
         leftFloors.Add(floorLeft);
         rightFloors.Add(floorRight);
-        GameObject obs = CreateObstacle(spriteHeight*heightScale, floorRight, floorLeft);
+        // Create 2 obstacles 
+        GameObject obs1 = CreateObstacle(spriteHeight*heightScale, floorRight, floorLeft);
+        GameObject obs2 = CreateObstacle(spriteHeight*heightScale, floorRight, floorLeft);
         // Only spawn power up if they dont already have one
-        CreatePowerup(spriteHeight*heightScale,obs);
+        CreatePowerup(spriteHeight*heightScale,obs1,obs2);
+        return hole; 
     }
 
     //Returns gameobject so we dont create coin overlapping it 
@@ -276,14 +260,14 @@ public class FloorManager : MonoBehaviour
         GameObject obs = new GameObject("Obstacle");
         obs.transform.localScale = new Vector3(1.75f, 1.75f);
 
-        float location = Random.Range(0.5f,width/2-0.5f);
+        float location = Random.Range(0.5f,width-0.5f);
 
         BoxCollider2D leftCollider = leftFloor.GetComponent<BoxCollider2D>();
         BoxCollider2D rightCollider = rightFloor.GetComponent<BoxCollider2D>();
 
         //Checks for overlap 
         while (!leftCollider.bounds.Contains(new Vector3(-location, leftCollider.bounds.center.y, 0)) && !rightCollider.bounds.Contains(new Vector3(-location, rightCollider.bounds.center.y, 0))) {
-            location = Random.Range(0.5f,width/2-0.5f);
+            location = Random.Range(0.5f,width-0.5f);
         }
         obs.transform.position = new Vector3(-location,-height/2 + spriteHeight*2/2 + floorHeight);
   
@@ -294,9 +278,9 @@ public class FloorManager : MonoBehaviour
         return obs;
     }
 
-    public void CreatePowerup(float floorHeight, GameObject obs) {
+    public void CreatePowerup(float floorHeight, GameObject obs1, GameObject obs2) {
         //Create Power Up for Each Level 
-        int powerupRandom = Random.Range(0,1);
+        int powerupRandom = Random.Range(0,3);
         // Return if not 0
         if(powerupRandom != 0) {
             return;
@@ -307,13 +291,13 @@ public class FloorManager : MonoBehaviour
         float spriteHeight = floorRemover.texture.height / floorRemover.pixelsPerUnit;
 
         // Determine type of power-up:
-        int pIndex = Random.Range(0,4);
+        int pIndex = Random.Range(0,2);
 
         GameObject powerObj = new GameObject(powerupNames[pIndex]);
         powerObj.transform.localScale = new Vector3(1f, 1f);
 
         float location = Random.Range(0.5f,width/2-0.5f);
-        while(obs.GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight))) {
+        while(obs1.GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight)) || obs2.GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight))) {
             location = Random.Range(0.5f,width/2-0.5f);
         }
         powerObj.transform.position = new Vector3(-location,-height/2 + spriteHeight/2 + floorHeight);
@@ -321,8 +305,5 @@ public class FloorManager : MonoBehaviour
         SpriteRenderer renderer = powerObj.AddComponent<SpriteRenderer>();
         renderer.sprite = powerupSprites[pIndex];
         powerups.Add(powerObj);
-    }
-
-    //public void CheckOverlap() --> This would be awesome to add at some point.
-    
+    }    
 }

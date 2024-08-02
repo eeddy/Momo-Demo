@@ -968,7 +968,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   momo: {fileID: 698971092}
-  otherFloorManager: {fileID: 0}
   normalGround: {fileID: 21300000, guid: 1256cf9f4e60d894496bef4be4b06ddc, type: 3}
   obstacle: {fileID: 21300000, guid: 9f8e7873ebd59dd46afae05c83405e9b, type: 3}
   floorRemover: {fileID: 21300000, guid: 98051c2026929a04aa792b7182b0ea70, type: 3}
@@ -977,7 +976,6 @@ MonoBehaviour:
   swordWalls: {fileID: 21300000, guid: 6c7a1ec214c9124449364e4470f13340, type: 3}
   swordWall: {fileID: 21300000, guid: 361bbc641f3decf46a7388e376df4e90, type: 3}
   powerups: []
-  floorSpeed: 0.5
 --- !u!1 &763451598
 GameObject:
   m_ObjectHideFlags: 0
@@ -1055,7 +1053,6 @@ MonoBehaviour:
   p1h1: {fileID: 2049019969}
   p1h2: {fileID: 1428456463}
   p1h3: {fileID: 196440884}
-  p1Score: {fileID: 0}
   fullHeart: {fileID: 21300000, guid: ef5573fb48ab3664d9c8234ec90baa8b, type: 3}
   emptyHeart: {fileID: 21300000, guid: dec154b0f5955c44cad005b63b8510b6, type: 3}
   p1FloorManager: {fileID: 712743340}
@@ -1063,7 +1060,6 @@ MonoBehaviour:
   p1Spikes: {fileID: 987309647}
   gameOverScreen: {fileID: 239666079}
   pauseScreen: {fileID: 1070833474}
-  time: {fileID: 0}
 --- !u!4 &815144331
 Transform:
   m_ObjectHideFlags: 0

@@ -7,16 +7,13 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public Image p1h1, p1h2, p1h3; //Hearts
-    public Text p1Score;
     public Sprite fullHeart;
     public Sprite emptyHeart;
     public FloorManager p1FloorManager;
 
     public GameObject momo1, p1Spikes;
     public GameObject gameOverScreen, pauseScreen; 
-    public Text time; 
 
-    private float previousTime = 0;
     private int player1Lives; 
 
     private bool p1Touching;
@@ -28,6 +25,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log(p1FloorManager);
         gameOverScreen.SetActive(false);
         pauseScreen.SetActive(false);
         Time.timeScale = 1;
