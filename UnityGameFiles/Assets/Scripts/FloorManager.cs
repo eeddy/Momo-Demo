@@ -295,8 +295,8 @@ public class FloorManager : MonoBehaviour
     }
 
     public void CreatePowerup(float floorHeight, GameObject obs) {
-        //One in 4 chance of coing being created
-        int powerupRandom = Random.Range(0,4);
+        //Create Power Up for Each Level 
+        int powerupRandom = Random.Range(0,1);
         // Return if not 0
         if(powerupRandom != 0) {
             return;

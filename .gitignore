@@ -1,13 +1,13 @@
 # =============== #
 # Unity generated #
 # =============== #
-Temp/
-Obj/
-Build/
-Library/
+UnityGameFiles/Temp/
+UnityGameFiles/Obj/
+UnityGameFiles/Build/
+UnityGameFiles/Library/
 *.unitypackage
-Logs/
-UserSettings/
+UnityGameFiles/Logs/
+UnityGameFiles/UserSettings/
 .vs/*
 .vsconfig
 Python/data/*
